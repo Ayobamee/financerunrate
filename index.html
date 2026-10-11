@@ -419,10 +419,38 @@
       return y + ' yrs ' + (mo > 0 ? mo + ' mo' : '');
     }
 
+    const STORAGE_KEY = 'finRunRate_v1';
+    const INPUT_IDS = ['i-cash','i-inv','i-car','i-travel1','i-base','i-invinc','i-exp','i-travel2'];
+
+    function saveToStorage() {
+      try {
+        const data = { withTravel };
+        INPUT_IDS.forEach(id => { data[id] = document.getElementById(id).value; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch(e) {}
+    }
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        INPUT_IDS.forEach(id => {
+          if (data[id] !== undefined) document.getElementById(id).value = data[id];
+        });
+        if (data.withTravel !== undefined) {
+          withTravel = data.withTravel;
+          document.getElementById('btn-no-travel').classList.toggle('active', !withTravel);
+          document.getElementById('btn-with-travel').classList.toggle('active', withTravel);
+        }
+      } catch(e) {}
+    }
+
     function setTravel(val) {
       withTravel = val;
       document.getElementById('btn-no-travel').classList.toggle('active', !val);
       document.getElementById('btn-with-travel').classList.toggle('active', val);
+      saveToStorage();
       render();
     }
 
@@ -536,10 +564,11 @@
       }
     }
 
-    ['i-cash','i-inv','i-car','i-travel1','i-base','i-invinc','i-exp','i-travel2'].forEach(id => {
-      document.getElementById(id).addEventListener('input', render);
+    INPUT_IDS.forEach(id => {
+      document.getElementById(id).addEventListener('input', () => { saveToStorage(); render(); });
     });
 
+    loadFromStorage();
     render();
   </script>
 </body>
